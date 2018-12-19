@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+
+  tasks:
+   - name: java installation
+     yum:
+       name: java-1.8.0-openjdk
+       state: present
+     become: true
+
+   - name: Downloading Jenkins repo   
+     get_url:
+       url: http://pkg.jenkins-ci.org/redhat/jenkins.repo
+       dest: /etc/yum.repos.d/jenkins.repo
+     become: true
+
+   - name: Import GPG Key
+     rpm_key:
+       state: present
+       key: https://jenkins-ci.org/redhat/jenkins-ci.org.key
+
+   - name: Installing Jenkins
+     yum:
+       name: jenkins
+       state: present
+
+   - name: automation of jenkins pass
+     lineinfile: 
+       dest=/etc/sysconfig/jenkins
+       regexp=^JENKINS_JAVA_OPTIONS=
+       line=JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
+     become: true
+
+   - name: Starting jenkins service and enabling jenkins on boot
+     service:
+       name: jenkins
+       state: started
+       enabled: yes
